@@ -49,7 +49,7 @@
 // At least N characters
 "com.auth0.lock.error.password.at_least_length" = "At least %d characters in length";
 // At least n groups
-"com.auth0.lock.error.password.contain_at_least" = "Contain at least %d of the following %d types of characters:";
+"com.auth0.lock.error.password.contain_at_least" = "Contain %d of the following:";
 // Lowercase letters
 "com.auth0.lock.error.password.lowercase_letters" = "Lower case letters (a-z)";
 // No more than %@{count} identical characters in a row (e.g., \"%@{identical sample}\" not allowed)
