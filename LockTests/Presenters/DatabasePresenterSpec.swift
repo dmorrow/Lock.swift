@@ -88,6 +88,15 @@ class DatabasePresenterSpec: QuickSpec {
             }
         }
 
+        describe("accept terms alert") {
+
+            it("present alert") {
+                presenter.showTermsPrompt(atButton: view.primaryButton!) { _ in }
+                expect(navigator.presented as? UIAlertController).toEventuallyNot(beNil())
+            }
+
+        }
+
         describe("user state") {
 
             it("should return initial valid email") {
@@ -221,6 +230,10 @@ class DatabasePresenterSpec: QuickSpec {
                 expect(view.passwordManagerButton).to(beNil())
             }
 
+            it("should have show password button") {
+                expect(view.showPasswordButton).toNot(beNil())
+            }
+
             context("with password manager available") {
 
                 beforeEach {
@@ -236,6 +249,10 @@ class DatabasePresenterSpec: QuickSpec {
                     presenter.passwordManager.enabled = false
                     view = presenter.view as! DatabaseOnlyView
                     expect(view.passwordManagerButton).to(beNil())
+                }
+
+                it("should not have show password button") {
+                    expect(view.showPasswordButton).to(beNil())
                 }
             }
 
@@ -291,6 +308,12 @@ class DatabasePresenterSpec: QuickSpec {
                     let input = mockInput(.username, value: "invalid")
                     view.form?.onValueChange(input)
                     expect(input.valid) == false
+                }
+
+                it("should toggle show password") {
+                    expect(view.passwordField?.textField?.isSecureTextEntry).to(beTrue())
+                    view.showPasswordButton?.onPress(view.showPasswordButton!)
+                    expect(view.passwordField?.textField?.isSecureTextEntry).to(beFalse())
                 }
 
             }
@@ -445,6 +468,10 @@ class DatabasePresenterSpec: QuickSpec {
                 expect(view.primaryButton?.title) == "SIGN UP"
             }
 
+            it("should have show password button") {
+                expect(view.showPasswordButton).toNot(beNil())
+            }
+
             describe("user input") {
 
                 it("should clear global message") {
@@ -504,6 +531,10 @@ class DatabasePresenterSpec: QuickSpec {
                     expect(view.passwordManagerButton).to(beNil())
                 }
 
+                it("should not show password manager when disabled") {
+                    expect(view.passwordManagerButton).to(beNil())
+                }
+
                 context("with password manager available") {
 
                     beforeEach {
@@ -517,21 +548,15 @@ class DatabasePresenterSpec: QuickSpec {
                         expect(view.passwordManagerButton).toNot(beNil())
                     }
 
-                    context("disable password manager") {
-
-                        beforeEach {
-                            presenter.passwordManager = passwordManager
-                            presenter.passwordManager.enabled = false
-                            view = presenter.view as! DatabaseOnlyView
-                            view.switcher?.selected = .signup
-                            view.switcher?.onSelectionChange(view.switcher!)
-                        }
-
-                        it("should not show password manager when disabled") {
-                            expect(view.passwordManagerButton).to(beNil())
-                        }
-
+                    it("should not have show password button") {
+                        expect(view.showPasswordButton).to(beNil())
                     }
+                }
+
+                it("should toggle show password") {
+                    expect(view.passwordField?.textField?.isSecureTextEntry).to(beTrue())
+                    view.showPasswordButton?.onPress(view.showPasswordButton!)
+                    expect(view.passwordField?.textField?.isSecureTextEntry).to(beFalse())
                 }
 
             }
@@ -641,6 +666,39 @@ class DatabasePresenterSpec: QuickSpec {
                     let button = view.primaryButton!
                     button.onPress(button)
                     expect(button.inProgress).toEventually(beFalse())
+                }
+
+                context("must accept terms popup") {
+
+                    beforeEach {
+                        options.mustAcceptTerms = true
+                        presenter = DatabasePresenter(authenticator: interactor, creator: interactor, connection: DatabaseConnection(name: connection, requiresUsername: false), navigator: navigator, options: options)
+                        view = presenter.view as! DatabaseOnlyView
+                        view.switcher?.selected = .signup
+                        view.switcher?.onSelectionChange(view.switcher!)
+                    }
+
+                    it("will not show terms alert as invalid form") {
+                        let button = view.primaryButton!
+                        interactor.onSignUp = {
+                            return nil
+                        }
+                        button.onPress(button)
+                        expect(navigator.presented as? UIAlertController).toEventually(beNil())
+                    }
+
+                    it("will show terms alert as valid form") {
+                        let form = view.form as! SignUpView
+                        form.emailField.showValid()
+                        form.passwordField.showValid()
+                        let button = view.primaryButton!
+                        interactor.onSignUp = {
+                            return nil
+                        }
+                        button.onPress(button)
+                        expect(navigator.presented as? UIAlertController).toEventuallyNot(beNil())
+                    }
+
                 }
 
                 context("no login after signup") {
@@ -862,14 +920,13 @@ class DatabasePresenterSpec: QuickSpec {
     }
 }
 
-func haveAction(_ title: String, style: UIAlertActionStyle) -> MatcherFunc<[UIAlertAction]> {
-    return MatcherFunc { expression, failureMessage in
-        failureMessage.postfixMessage = "have action with title \(title) and style \(style)"
+func haveAction(_ title: String, style: UIAlertActionStyle) -> Predicate<[UIAlertAction]> {
+    return Predicate<[UIAlertAction]>.define("have action with title \(title) and style \(style)") { expression, failureMessage -> PredicateResult in
         if let actions = try expression.evaluate() {
-            return actions.contains { alert in
+            if actions.contains(where: { alert in
                 return alert.title == title && alert.style == style
-            }
+            }) { return PredicateResult(status: .matches, message: failureMessage) }
         }
-        return false
+        return PredicateResult(status: .doesNotMatch, message: failureMessage)
     }
 }

@@ -22,7 +22,7 @@
 
 import UIKit
 
-class InputField: UIView, UITextFieldDelegate, Stylable {
+class InputField: UIView, Stylable {
 
     weak var containerView: UIView?
     weak var textField: UITextField?
@@ -120,10 +120,10 @@ class InputField: UIView, UITextFieldDelegate, Stylable {
             self.errorLabel?.text = self.state.text
             self.errorLabelTopPadding?.constant = self.state.padding
             switch self.state {
-                case .valid:
-                    self.containerView?.layer.borderColor = self.borderColor?.cgColor
-                case .invalid:
-                    self.containerView?.layer.borderColor = self.borderColorError?.cgColor
+            case .valid:
+                self.containerView?.layer.borderColor = self.borderColor?.cgColor
+            case .invalid:
+                self.containerView?.layer.borderColor = self.borderColorError?.cgColor
             }
         }
     }
@@ -152,8 +152,8 @@ class InputField: UIView, UITextFieldDelegate, Stylable {
         constraintEqual(anchor: errorLabel.leftAnchor, toAnchor: self.leftAnchor)
         constraintEqual(anchor: errorLabel.rightAnchor, toAnchor: self.rightAnchor)
         constraintEqual(anchor: errorLabel.bottomAnchor, toAnchor: self.bottomAnchor)
-        errorLabel.setContentHuggingPriority(UILayoutPriorityDefaultHigh, for: .vertical)
-        errorLabel.setContentCompressionResistancePriority(UILayoutPriorityDefaultHigh, for: .vertical)
+        errorLabel.setContentHuggingPriority(UILayoutPriority.priorityDefaultHigh, for: .vertical)
+        errorLabel.setContentCompressionResistancePriority(UILayoutPriority.priorityDefaultHigh, for: .vertical)
         errorLabel.translatesAutoresizingMaskIntoConstraints = false
 
         constraintEqual(anchor: iconContainer.leftAnchor, toAnchor: container.leftAnchor)
@@ -244,31 +244,18 @@ class InputField: UIView, UITextFieldDelegate, Stylable {
                 return 0
             }
         }
-    }
 
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        self.onBeginEditing(self)
-    }
-
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        self.onEndEditing(self)
-    }
-
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        self.onReturn(self)
-        if let field = self.nextField?.textField {
-            Queue.main.async {
-                field.becomeFirstResponder()
-            }
-        } else {
-            Queue.main.async {
-                textField.resignFirstResponder()
+        var isValid: Bool {
+            switch self {
+            case .valid:
+                return true
+            case .invalid:
+                return false
             }
         }
-        return true
     }
 
-    func textChanged(_ field: UITextField) {
+    @objc func textChanged(_ field: UITextField) {
         self.onTextChange(self)
     }
 
@@ -361,17 +348,44 @@ class InputField: UIView, UITextFieldDelegate, Stylable {
     }
 
     // MARK: - Styable
-
     func apply(style: Style) {
         self.borderColor = style.inputBorderColor
         self.borderColorError = style.inputBorderColorError
         self.textField?.textColor = style.inputTextColor
         self.textField?.attributedPlaceholder = NSAttributedString(string: self.textField?.placeholder ?? "",
-                                                               attributes: [NSForegroundColorAttributeName: style.inputPlaceholderTextColor])
+                                                               attributes: [attributedKeyColor: style.inputPlaceholderTextColor])
         self.containerView?.backgroundColor = style.inputBackgroundColor
         self.containerView?.layer.borderColor = style.inputBorderColor.cgColor
         self.errorLabel?.textColor = style.inputBorderColorError
         self.iconContainer?.backgroundColor = style.inputIconBackgroundColor
         self.iconView?.tintColor = style.inputIconColor
     }
+}
+
+// MARK: - UITextFieldDelegate
+extension InputField: UITextFieldDelegate {
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        self.onBeginEditing(self)
+    }
+
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        self.onEndEditing(self)
+    }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        self.onTextChange(self)
+        self.onReturn(self)
+        if let field = self.nextField?.textField {
+            Queue.main.async {
+                field.becomeFirstResponder()
+            }
+        } else {
+            Queue.main.async {
+                textField.resignFirstResponder()
+            }
+        }
+        return true
+    }
+
 }

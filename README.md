@@ -4,6 +4,8 @@
 [![Version](https://img.shields.io/cocoapods/v/Lock.svg?style=flat-square)](http://cocoadocs.org/docsets/Lock)
 [![License](https://img.shields.io/cocoapods/l/Lock.svg?style=flat-square)](http://cocoadocs.org/docsets/Lock)
 [![Platform](https://img.shields.io/cocoapods/p/Lock.svg?style=flat-square)](http://cocoadocs.org/docsets/Lock)
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat-square)](https://github.com/Carthage/Carthage)
+![Swift 3.2](https://img.shields.io/badge/Swift-3.2-orange.svg?style=flat-square)
 
 [Auth0](https://auth0.com) is an authentication broker that supports social identity providers as well as enterprise identity providers such as Active Directory, LDAP, Google Apps and Salesforce.
 
@@ -19,8 +21,8 @@ Need help migrating from v1? Please check our [Migration Guide](MIGRATION.md)
 ## Requirements
 
 - iOS 9 or later
-- Xcode 8
-- Swift 3.0
+- Xcode 8.3+
+- Swift 3.2+
 
 ## Install
 
@@ -29,7 +31,7 @@ Need help migrating from v1? Please check our [Migration Guide](MIGRATION.md)
  Add the following line to your Podfile:
 
  ```ruby
- pod "Lock", "~> 2.3"
+ pod "Lock", "~> 2.6"
  ```
 
 ### Carthage
@@ -37,7 +39,7 @@ Need help migrating from v1? Please check our [Migration Guide](MIGRATION.md)
 In your `Cartfile` add
 
 ```ruby
-github "auth0/Lock.swift" ~> 2.3
+github "auth0/Lock.swift" ~> 2.6
 ```
 
 ## Usage
@@ -58,13 +60,13 @@ func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpe
 
 ### Configuration
 
-In order to use Lock you need to provide your Auth0 Client Id and Domain.
+In order to use Lock you need to provide your Auth0 Client ID and Domain.
 
-> Auth0 ClientId & Domain can be found in your [Auth0 Dashboard](https://manage.auth0.com)
+> The Auth0 Client ID & Domain can be found in your [Auth0 Dashboard](https://manage.auth0.com)
 
 #### Auth0.plist file
 
-In your application bundle you can add a `plist` file named `Auth0.plist` with the following format
+In your application bundle you can add a `plist` file named `Auth0.plist` with the following information:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -85,7 +87,7 @@ Lock Classic handles authentication using Database, Social & Enterprise connecti
 
 ### OIDC Conformant Mode
 
-It is strongly encouraged that this SDK be used in OIDC Conformant mode. When this mode is enabled, it will force the SDK to use Auth0's current authentication pipeline and will prevent it from reaching legacy endpoints. By default this is `false`
+It is strongly encouraged that this SDK be used in OIDC Conformant mode. When this mode is enabled, it will force the SDK to use Auth0's current authentication pipeline and will prevent it from reaching legacy endpoints. By default this is `false`.
 
 ```swift
 .withOptions {
@@ -119,9 +121,14 @@ Lock
     .present(from: self)
 ```
 
+### Important: Database Connection Authentication
+
+Since June 2017 new Clients no longer have the **Password Grant Type*** enabled by default.
+If you are using a Database Connection in Lock then you will need to enable the Password Grant Type, please follow [this guide](https://auth0.com/docs/clients/client-grant-types#how-to-edit-the-client-grant_types-property).
+
 #### Specify Connections
 
-Lock will automatically load your client configuration automatically, if you wish to override this behaviour you can manually specify which of your connections to use.  
+Lock will automatically load your application configuration automatically, if you wish to override this behaviour you can manually specify which of your connections to use.  
 
 Before presenting Lock you can tell it what connections it should display and use to authenticate an user. You can do that by calling the method and supply a closure that can specify the connections.
 
@@ -151,6 +158,17 @@ Before presenting Lock you can tell it what connections it should display and us
 }
 ```
 
+### Custom Domains
+
+If you are using [Custom Domains](https://auth0.com/docs/custom-domains), you will need to set the `configurationBaseURL` to your Auth0 Domain so the Lock configuration can 
+be read correctly.
+
+```swift
+.withOptions {
+   $0.configurationBase = "https://<YOUR DOMAIN>.auth0.com"
+}
+```
+
 ### Logging
 
 You can easily turn on/off logging capabilities.
@@ -167,6 +185,16 @@ Lock
 ## Styling Lock
 
 Lock provides many styling options to help you apply your own brand identity to Lock.
+
+### iPad Modal Presentation
+
+iPad presentation is show in a modal popup, this can be disabled to use full screen as follows.
+
+```swift
+.withStyle {
+  $0.modalPopup = false
+}
+```
 
 ### Customize your header and primary color
 
@@ -196,7 +224,7 @@ Lock provides many styling options to help you apply your own brand identity to 
 
 Lock Passwordless handles authentication using Passwordless & Social Connections.
 
-> The Passwordless feature requires your client to have the *Resource Owner* Legacy Grant Type enabled. Check [this article](https://auth0.com/docs/clients/client-grant-types) for more information.
+> The Passwordless feature requires your application to have the *Resource Owner* Legacy Grant Type enabled. Check [this article](https://auth0.com/docs/clients/client-grant-types) for more information.
 
 To show Lock, add the following snippet in your `UIViewController`
 
@@ -286,8 +314,18 @@ By default Lock will use Auth0's [Terms of Service](https://auth0.com/terms) and
 
 ```swift
 .withOptions {
-  $0.termsOfService = "https://mycompany.com/terms"
-  $0.privacyPolicy = "https://mycompany.com/privacy"
+    $0.termsOfService = "https://mycompany.com/terms"
+    $0.privacyPolicy = "https://mycompany.com/privacy"
+}
+```
+
+#### Must accept Terms of Service
+
+Database connection will require explicit acceptance of terms of service
+
+```swift
+.withOptions {
+    $0.mustAcceptTerms = true
 }
 ```
 
@@ -398,7 +436,7 @@ By default the `appIdentifier` will be set to the app's bundle identifier and th
 }
 ```
 
-You will need to add the following to your app's `info.plist`:
+You will need to add the following to your app's `Info.plist`:
 
 ```xml
 <key>LSApplicationQueriesSchemes</key>
@@ -406,6 +444,17 @@ You will need to add the following to your app's `info.plist`:
     <string>org-appextension-feature-password-management</string>
 </array>
 ```
+
+> If your `Info.plist` is not shown in this format, you can **Right Click** on `Info.plist` in Xcode and then select **Open As / Source Code**.
+
+
+If you see the following debug error:
+
+```text
+canOpenURL: failed for URL: "org-appextension-feature-password-management://" - error: "This app is not allowed to query for scheme org-appextension-feature-password-management"
+```
+
+This is normal and expected behavior when there is no app that can open a custom URL. In this case when the 1Password app is not installed.  Unfortunately, the message can be a little confusing but it is coming from iOS itself.
 
 #### Show Password
 
@@ -435,7 +484,7 @@ By default a show password icon is shown in password fields to toggle visibility
 
 Auth0 helps you to:
 
-* Add authentication with [multiple authentication sources](https://docs.auth0.com/identityproviders), either social like **Google, Facebook, Microsoft Account, LinkedIn, GitHub, Twitter, Box, Salesforce, amont others**, or enterprise identity systems like **Windows Azure AD, Google Apps, Active Directory, ADFS or any SAML Identity Provider**.
+* Add authentication with [multiple authentication sources](https://docs.auth0.com/identityproviders), either social like **Google, Facebook, Microsoft Account, LinkedIn, GitHub, Twitter, Box, Salesforce, amongst others**, or enterprise identity systems like **Windows Azure AD, Google Apps, Active Directory, ADFS or any SAML Identity Provider**.
 * Add support for [Custom OAuth2 Connections](https://auth0.com/docs/connections/social/oauth2).
 * Add authentication through more traditional **[username/password databases](https://docs.auth0.com/mysql-connection-tutorial)**.
 * Add support for **[linking different user accounts](https://docs.auth0.com/link-accounts)** with the same user.

@@ -1,8 +1,6 @@
 skip_docs
 opt_out_usage
 
-fastlane_version "2.27.0"
-
 default_platform :ios
 
 platform :ios do
@@ -42,7 +40,7 @@ platform :ios do
   desc "Runs all the tests in a CI environment"
   lane :ci do
     i18n(silent: true) # Generate base strings file
-    ensure_git_status_clean # Until we add dangerfile check if there are changes this way
+    # ensure_git_status_clean # Until we add dangerfile check if there are changes this way
     scheme = ENV["SCHEME"]
     UI.user_error!("You must supply a valid scheme in 'SCHEME' env variable") if scheme.nil?
     options = {
@@ -86,11 +84,20 @@ platform :ios do
     ENV["FASTLANE_HIDE_TIMESTAMP"] = "false"
   end
 
-  desc "Releases the library to Cocoapods & Github Releases and updates README/CHANGELOG"
+  desc "Prepares the library for release by updating versions and creating release pull request"
   desc "You need to specify the type of release with the `bump` parameter with the values [major|minor|patch]"
-  lane :release do |options|
-    release_options = {repository: 'Lock.swift', xcodeproj: 'Lock.xcodeproj'}.merge(options)
+  lane :release_prepare do |options|
+    release_options = {repository: 'Lock.swift', xcodeproj: 'Lock.xcodeproj', target: 'Lock.iOS'}.merge(options)
     prepare_release release_options
-    publish_release
+  end
+
+  desc "Performs the prepared release by creating a tag and pusing to remote"
+  lane :release_perform do
+    perform_release target: 'Lock.iOS'
+  end
+
+  desc "Releases the library to CocoaPods trunk & Github Releases"
+  lane :release_publish do
+    publish_release repository: 'Lock.swift'
   end
 end

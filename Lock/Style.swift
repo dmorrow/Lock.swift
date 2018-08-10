@@ -73,7 +73,7 @@ public struct Style {
         /// Main body text color
     public var textColor = UIColor.black
 
-        /// Hide primary bytton title (show only icon). By default is false
+        /// Hide primary button title (show only icon). By default is false
     public var hideButtonTitle = false
 
         /// Header logo image
@@ -129,6 +129,9 @@ public struct Style {
 
         /// 1Password Icon color
     public var onePasswordIconColor = UIColor(red: 0.5725, green: 0.5804, blue: 0.5843, alpha: 1.0)
+
+        /// iPad Modal Presentation Style
+    public var modalPopup = true
 
     var headerMask: UIImage? {
         let image = self.logo.image(compatibleWithTraits: nil)

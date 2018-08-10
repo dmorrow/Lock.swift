@@ -1,5 +1,60 @@
 # Change Log
 
+## [2.6.0](https://github.com/auth0/Lock.swift/tree/2.6.0) (2018-06-12)
+[Full Changelog](https://github.com/auth0/Lock.swift/compare/2.5.1...2.6.0)
+
+**Added**
+- Updated Auth0 Shipper Plugin [\#508](https://github.com/auth0/Lock.swift/pull/508) ([cocojoe](https://github.com/cocojoe))
+- Added `configurationBaseURL` option for Custom Domains support [\#505](https://github.com/auth0/Lock.swift/pull/505) ([cocojoe](https://github.com/cocojoe))
+- Added `mustAcceptTerms` option for Sign up [\#503](https://github.com/auth0/Lock.swift/pull/503) ([cocojoe](https://github.com/cocojoe))
+
+**Changed**
+- Update Xcode 9.3 / Libs [\#500](https://github.com/auth0/Lock.swift/pull/500) ([cocojoe](https://github.com/cocojoe))
+
+**Fixed**
+- Fixed passing parameters option to OIDC Login [\#507](https://github.com/auth0/Lock.swift/pull/507) ([cocojoe](https://github.com/cocojoe))
+
+## [2.5.1](https://github.com/auth0/Lock.swift/tree/2.5.1) (2018-01-30)
+[Full Changelog](https://github.com/auth0/Lock.swift/compare/2.5.0...2.5.1)
+
+**Changed**
+- Changed default modal presentation style for iPad [\#493](https://github.com/auth0/Lock.swift/pull/493) ([cocojoe](https://github.com/cocojoe))
+
+## [2.5.0](https://github.com/auth0/Lock.swift/tree/2.5.0) (2018-01-10)
+[Full Changelog](https://github.com/auth0/Lock.swift/compare/2.4.2...2.5.0)
+
+**Added**
+- Updated Libs [\#488](https://github.com/auth0/Lock.swift/pull/488) ([cocojoe](https://github.com/cocojoe))
+- Fix iPhone X Use top margin guide for Banner [\#481](https://github.com/auth0/Lock.swift/pull/481) ([cocojoe](https://github.com/cocojoe))
+- Added Swift 3.2/4.0 Compatibility [\#480](https://github.com/auth0/Lock.swift/pull/480) ([cocojoe](https://github.com/cocojoe))
+- Added Circle CI 2.0 YML [\#478](https://github.com/auth0/Lock.swift/pull/478) ([cocojoe](https://github.com/cocojoe))
+
+## [2.4.2](https://github.com/auth0/Lock.swift/tree/2.4.2) (2017-11-13)
+[Full Changelog](https://github.com/auth0/Lock.swift/compare/2.4.1...2.4.2)
+
+**Fixed**
+- Fixed error presenter callback thread during failed universal link auth [\#476](https://github.com/auth0/Lock.swift/pull/476) ([cocojoe](https://github.com/cocojoe))
+
+## [2.4.1](https://github.com/auth0/Lock.swift/tree/2.4.1) (2017-10-19)
+[Full Changelog](https://github.com/auth0/Lock.swift/compare/2.4.0...2.4.1)
+
+**Changed**
+- Update latest Auth0.swift lib [\#472](https://github.com/auth0/Lock.swift/pull/472) ([cocojoe](https://github.com/cocojoe))
+
+## [2.4.0](https://github.com/auth0/Lock.swift/tree/2.4.0) (2017-09-20)
+[Full Changelog](https://github.com/auth0/Lock.swift/compare/2.3.1...2.4.0)
+
+**Changed**
+- Disabled Code coverage Xcode 9 [\#467](https://github.com/auth0/Lock.swift/pull/467) ([cocojoe](https://github.com/cocojoe))
+- Update Nimble lib and test code (Fixes tests in Xcode 9) [\#464](https://github.com/auth0/Lock.swift/pull/464) ([cocojoe](https://github.com/cocojoe))
+
+**Fixed**
+- Fix self retain cycle in DatabaseView [\#463](https://github.com/auth0/Lock.swift/pull/463) ([cocojoe](https://github.com/cocojoe))
+- Fix - Custom field validation on form submission [\#462](https://github.com/auth0/Lock.swift/pull/462) ([cocojoe](https://github.com/cocojoe))
+- Fix text replacement on return [\#460](https://github.com/auth0/Lock.swift/pull/460) ([cocojoe](https://github.com/cocojoe))
+- Fixed Signup Bugs [\#455](https://github.com/auth0/Lock.swift/pull/455) ([cocojoe](https://github.com/cocojoe))
+- Fix SSO in Database with allow option [\#450](https://github.com/auth0/Lock.swift/pull/450) ([cocojoe](https://github.com/cocojoe))
+
 ## [2.3.1](https://github.com/auth0/Lock.swift/tree/2.3.1) (2017-07-11)
 [Full Changelog](https://github.com/auth0/Lock.swift/compare/2.3.0...2.3.1)
 
@@ -180,7 +235,7 @@ Lock
 
 #### Specify Connections
 
-> Eventually **Lock.swift** will be able to load your client configuration automatically, but until then you should describe what connections it should use.
+> Eventually **Lock.swift** will be able to load your application configuration automatically, but until then you should describe what connections it should use.
 
 Before presenting **Lock.swift** you can tell it what connections it should display and use to authenticate an user. You can do that by calling the method and supply a closure that can specify the connections
 

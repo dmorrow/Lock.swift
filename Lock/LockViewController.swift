@@ -41,6 +41,10 @@ public class LockViewController: UIViewController {
         self.lock = lock
         super.init(nibName: nil, bundle: nil)
         lock.observerStore.controller = self
+        if self.lock.style.modalPopup {
+            self.modalPresentationStyle = .formSheet
+            self.preferredContentSize = CGSize(width: 375, height: 667)
+        }
         self.router = lock.classicMode ? ClassicRouter(lock: lock, controller: self) : PasswordlessRouter(lock: lock, controller: self)
     }
 
@@ -100,6 +104,13 @@ public class LockViewController: UIViewController {
         self.messagePresenter = BannerMessagePresenter(root: root, messageView: nil)
     }
 
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if let superview = self.view.superview {
+            superview.layer.cornerRadius  = 4.0
+        }
+    }
+
     public override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -143,7 +154,7 @@ public class LockViewController: UIViewController {
 
     // MARK: - Keyboard
 
-    func keyboardWasShown(_ notification: Notification) {
+    @objc func keyboardWasShown(_ notification: Notification) {
         guard
             let value = notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue,
             let duration = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber,
@@ -165,7 +176,7 @@ public class LockViewController: UIViewController {
             completion: nil)
     }
 
-    func keyboardWasHidden(_ notification: Notification) {
+    @objc func keyboardWasHidden(_ notification: Notification) {
         guard
             let duration = notification.userInfo?[UIKeyboardAnimationDurationUserInfoKey] as? NSNumber,
             let curveValue = notification.userInfo?[UIKeyboardAnimationCurveUserInfoKey] as? NSNumber

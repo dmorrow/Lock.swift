@@ -26,7 +26,7 @@ private let lowercase = "Lower case letters (a-z)".i18n(key: "com.auth0.lock.err
 private let upperCase = "Upper case letters (A-Z)".i18n(key: "com.auth0.lock.error.password.uppercase_letters", comment: "Uppercase letters")
 private let numbers = "Numbers (i.e. 0-9)".i18n(key: "com.auth0.lock.error.password.numbers", comment: "Numbers")
 private let specialCharacters = "Special characters (e.g. !@#$%^&*)".i18n(key: "com.auth0.lock.error.password.special_characters", comment: "Special Characters")
-private let containAtLeast = "Contain at least %d of the following %d types of characters:".i18n(key: "com.auth0.lock.error.password.contain_at_least", comment: "At least n groups")
+private let containAtLeast = "Contain %d of the following:".i18n(key: "com.auth0.lock.error.password.contain_at_least", comment: "At least n groups")
 private let shouldContain = "Should contain:".i18n(key: "com.auth0.lock.error.password.should_contain", comment: "N groups")
 private let nonEmpty = "Non-empty password required".i18n(key: "com.auth0.lock.error.password.non_empty", comment: "Must no be empty")
 private let atLeast = "At least %d characters in length".i18n(key: "com.auth0.lock.error.password.at_least_length", comment: "At least N characters")
@@ -45,7 +45,7 @@ public struct PasswordPolicy {
         case excellent
     }
 
-    func on(_ password: String?) -> [RuleResult] {
+    public func on(_ password: String?) -> [RuleResult] {
         return rules.map { $0.evaluate(on: password) }
     }
 

@@ -237,7 +237,7 @@ class MockAuthentication: Authentication {
 
     var webAuth: MockWebAuth?
     
-    var webAuthResult: () -> Auth0.Result<Credentials> = { _ in return Auth0.Result.failure(error: AuthenticationError(string: "FAILED", statusCode: 500)) }
+    var webAuthResult: () -> Auth0.Result<Credentials> = { return Auth0.Result.failure(error: AuthenticationError(string: "FAILED", statusCode: 500)) }
 
     required init(clientId: String, domain: String) {
         self.authentication = Auth0.authentication(clientId: clientId, domain: domain)
@@ -269,6 +269,9 @@ class MockAuthentication: Authentication {
         return self.authentication.tokenExchange(withParameters: parameters)
     }
 
+    func login(withOTP otp: String, mfaToken: String) -> Request<Credentials, AuthenticationError> {
+        return self.login(withOTP: otp, mfaToken: mfaToken)
+    }
 
     func tokenExchange(withCode code: String, codeVerifier: String, redirectURI: String) -> Request<Credentials, AuthenticationError> {
         return self.authentication.tokenExchange(withCode: code, codeVerifier: codeVerifier, redirectURI: redirectURI)
@@ -309,7 +312,7 @@ class MockWebAuth: WebAuth {
     var scope: String? = nil
     var audience: String? = nil
 
-    var result: () -> Auth0.Result<Credentials> = { _ in return Auth0.Result.failure(error: AuthenticationError(string: "FAILED", statusCode: 500)) }
+    var result: () -> Auth0.Result<Credentials> = { return Auth0.Result.failure(error: AuthenticationError(string: "FAILED", statusCode: 500)) }
     var telemetry: Telemetry = Telemetry()
 
     func connection(_ connection: String) -> Self {
@@ -365,12 +368,16 @@ class MockWebAuth: WebAuth {
 
     func clearSession(federated: Bool, callback: @escaping (Bool) -> Void) {
     }
+
+    func useLegacyAuthentication() -> Self {
+        return self
+    }
 }
 
 class MockOAuth2: OAuth2Authenticatable {
 
     var connection: String? = nil
-    var onLogin: () -> OAuth2AuthenticatableError? = { _ in return nil }
+    var onLogin: () -> OAuth2AuthenticatableError? = { return nil }
     var parameters: [String: String] = [:]
 
     func login(_ connection: String, loginHint: String? = nil, callback: @escaping (OAuth2AuthenticatableError?) -> ()) {
@@ -517,7 +524,7 @@ class MockPasswordManager: PasswordManager {
         return self.enabled && _available
     }
 
-    var onUpdate: (String, String) -> Void = { _ in }
+    var onUpdate: (String, String) -> Void = { _, _  in }
 
     func login(callback: @escaping (Error?) -> Void) {
         self.onUpdate(identifier, self.password)

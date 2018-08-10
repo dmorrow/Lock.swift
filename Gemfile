@@ -1,6 +1,8 @@
 source 'https://rubygems.org'
 
-gem 'fastlane', '~> 2.5'
+gem 'fastlane'
+gem 'jwt', '~> 1.5'
+gem 'dotenv', '~> 2.4'
 
 group :development do
   gem 'cocoapods', '~> 1.0'

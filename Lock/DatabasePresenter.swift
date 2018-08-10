@@ -174,13 +174,15 @@ class DatabasePresenter: Presentable, Loggable {
         let interactor = self.authenticator as? DatabaseInteractor
         let passwordPolicyValidator = interactor?.passwordValidator as? PasswordPolicyValidator
         self.currentScreen = .signup
-
+        interactor?.user.reset()
         view.showSignUp(withUsername: self.database.requiresUsername, username: username, email: email, authCollectionView: authCollectionView, additionalFields: self.options.customSignupFields, passwordPolicyValidator: passwordPolicyValidator, showPassswordManager: self.passwordManager.available, showPassword: self.options.allowShowPassword)
         let form = view.form
         view.form?.onValueChange = self.handleInput
-        let action = { [weak form] (button: PrimaryButton) in
+
+        let action = { [weak form, weak view] (button: PrimaryButton) in
             self.messagePresenter?.hideCurrent()
-            self.logger.info("perform sign up for email \(self.creator.email.verbatim())")
+            self.logger.info("Perform sign up for email \(self.creator.email.verbatim())")
+            view?.allFields?.forEach { self.handleInput($0) }
             let interactor = self.creator
             button.inProgress = true
             interactor.create { createError, loginError in
@@ -190,6 +192,7 @@ class DatabasePresenter: Presentable, Loggable {
                         if !self.options.loginAfterSignup {
                             let message = "Thanks for signing up.".i18n(key: "com.auth0.lock.database.signup.success.message", comment: "User signed up")
                             if let databaseView = self.databaseView, self.options.allow.contains(.Login) {
+                                self.databaseView?.switcher?.selected = .login
                                 self.showLogin(inView: databaseView, identifier: self.creator.identifier)
                             }
                             if self.options.allow.contains(.Login) || !self.options.autoClose {
@@ -210,15 +213,28 @@ class DatabasePresenter: Presentable, Loggable {
             }
         }
 
+        let checkTermsAndSignup = { [weak view] (button: PrimaryButton) in
+            if self.options.mustAcceptTerms {
+                let validForm = view?.allFields?
+                    .filter { !$0.state.isValid }
+                    .isEmpty ?? false
+                if validForm { self.showTermsPrompt(atButton: button) { _ in action(button) } }
+            } else {
+                action(button)
+            }
+        }
+
         view.form?.onReturn = { [weak view] field in
             guard let button = view?.primaryButton, field.returnKey == .done else { return } // FIXME: Log warn
-            action(button)
+            checkTermsAndSignup(button)
         }
-        view.primaryButton?.onPress = action
+        view.primaryButton?.onPress = checkTermsAndSignup
         view.secondaryButton?.title = "By signing up, you agree to our terms of\n service and privacy policy".i18n(key: "com.auth0.lock.database.button.tos", comment: "tos & privacy")
         view.secondaryButton?.color = UIColor ( red: 0.9333, green: 0.9333, blue: 0.9333, alpha: 1.0 )
         view.secondaryButton?.onPress = { button in
             let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+            alert.popoverPresentationController?.sourceView = button
+            alert.popoverPresentationController?.sourceRect = button.bounds
             let cancel = UIAlertAction(title: "Cancel".i18n(key: "com.auth0.lock.database.tos.sheet.cancel", comment: "Cancel"), style: .cancel, handler: nil)
             let tos = UIAlertAction(title: "Terms of Service".i18n(key: "com.auth0.lock.database.tos.sheet.title", comment: "ToS"), style: .default, handler: safariBuilder(forURL: self.options.termsOfServiceURL as URL, navigator: self.navigator))
             let privacy = UIAlertAction(title: "Privacy Policy".i18n(key: "com.auth0.lock.database.tos.sheet.privacy", comment: "Privacy"), style: .default, handler: safariBuilder(forURL: self.options.privacyPolicyURL as URL, navigator: self.navigator))
@@ -273,22 +289,33 @@ class DatabasePresenter: Presentable, Loggable {
             try self.authenticator.update(attribute, value: input.text)
             input.showValid()
 
-            guard
-                let mode = self.databaseView?.switcher?.selected,
-                mode == .login && updateHRD
-                else { return }
-            try? self.enterpriseInteractor?.updateEmail(input.text)
-            if let connection = self.enterpriseInteractor?.connection {
-                self.logger.verbose("Enterprise connection detected: \(connection)")
-                if self.databaseView?.ssoBar == nil { self.databaseView?.presentEnterprise() }
-            } else {
-                self.databaseView?.removeEnterprise()
+            if self.currentScreen == .login && updateHRD {
+                try? self.enterpriseInteractor?.updateEmail(input.text)
+                if let connection = self.enterpriseInteractor?.connection {
+                    self.logger.verbose("Enterprise connection detected: \(connection)")
+                    if self.databaseView?.ssoBar == nil { self.databaseView?.presentEnterprise() }
+                } else {
+                    self.databaseView?.removeEnterprise()
+                }
             }
         } catch let error as InputValidationError {
             input.showError(error.localizedMessage(withConnection: self.database))
         } catch {
             input.showError()
         }
+    }
+
+    func showTermsPrompt(atButton button: PrimaryButton, successHandler: @escaping (PrimaryButton) -> Void) {
+        let terms = "Terms & Policy".i18n(key: "com.auth0.lock.database.button.tos.title", comment: "tos title")
+        let alert = UIAlertController(title: terms, message: "By signing up, you agree to our terms of\n service and privacy policy".i18n(key: "com.auth0.lock.database.button.tos", comment: "tos & privacy"), preferredStyle: .alert)
+        alert.popoverPresentationController?.sourceView = button
+        alert.popoverPresentationController?.sourceRect = button.bounds
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        let okAction = UIAlertAction(title: "Accept", style: .default) { _ in
+            successHandler(button)
+        }
+        [cancelAction, okAction].forEach { alert.addAction($0) }
+        self.navigator.present(alert)
     }
 }
 
